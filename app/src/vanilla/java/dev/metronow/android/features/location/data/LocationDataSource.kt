@@ -1,49 +1,75 @@
 package dev.metronow.android.features.location.data
 
-import android.annotation.SuppressLint
-import android.content.Context
-import android.os.Looper
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import dev.metronow.android.features.location.domain.Coordinates
 import dev.metronow.android.features.location.domain.toDomain
+import android.annotation.SuppressLint
+import android.content.Context
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import android.Manifest
+import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
+import androidx.core.content.ContextCompat
 
 class LocationDataSource(
     private val context: Context
 ) {
     @SuppressLint("MissingPermission")
     fun locationFlow(): Flow<Coordinates> = callbackFlow {
-        val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        val locationRequest = LocationRequest.Builder(2000)
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .setWaitForAccurateLocation(true)
-            .setMinUpdateIntervalMillis(2000)
-            .setMinUpdateDistanceMeters(30f)
-            .build()
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            close(IllegalStateException("Location permissions not granted"))
+            return@callbackFlow
+        }
 
-        val locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult.lastLocation?.let { location ->
-                    trySend(location.toDomain())
-                }
+        val locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                trySend(location.toDomain())
+            }
+
+            @Deprecated("Deprecated in API 29")
+            override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
+            }
+
+            override fun onProviderEnabled(provider: String) {
+            }
+
+            override fun onProviderDisabled(provider: String) {
             }
         }
 
-        fusedLocationProviderClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.getMainLooper()
+        locationManager.requestLocationUpdates(
+            LocationManager.GPS_PROVIDER,
+            2000L,
+            30f,
+            locationListener
         )
 
+        // Fallback to Network Provider if GPS is not available or doesn't provide updates
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER,
+                2000L,
+                30f,
+                locationListener
+            )
+        }
+
         awaitClose {
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+            locationManager.removeUpdates(locationListener)
         }
     }
 }

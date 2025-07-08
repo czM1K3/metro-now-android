@@ -46,7 +46,7 @@ android {
             dimension = "locationBackend"
         }
         create("vanilla") {
-            versionNameSuffix = "-nogps"
+            versionNameSuffix = "-nogms"
             dimension = "locationBackend"
         }
     }
@@ -91,7 +91,7 @@ dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.android.room)
     ksp(libs.android.room.compiler)
-    implementation(libs.gms.play.services.location)
+    "gmsImplementation"(libs.gms.play.services.location)
     implementation(libs.accompanist.permissions)
     implementation(libs.coil.kt.coil.compose)
 }
