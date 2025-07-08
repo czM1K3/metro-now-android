@@ -39,6 +39,18 @@ android {
             applicationIdSuffix = ".debug"
         }
     }
+
+    flavorDimensions += "locationBackend"
+    productFlavors {
+        create("gms") {
+            dimension = "locationBackend"
+        }
+        create("vanilla") {
+            versionNameSuffix = "-nogms"
+            dimension = "locationBackend"
+        }
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -79,7 +91,7 @@ dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.android.room)
     ksp(libs.android.room.compiler)
-    implementation(libs.gms.play.services.location)
+    "gmsImplementation"(libs.gms.play.services.location)
     implementation(libs.accompanist.permissions)
     implementation(libs.coil.kt.coil.compose)
 }
