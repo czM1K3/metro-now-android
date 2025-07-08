@@ -39,6 +39,18 @@ android {
             applicationIdSuffix = ".debug"
         }
     }
+
+    flavorDimensions += "locationBackend"
+    productFlavors {
+        create("gms") {
+            dimension = "locationBackend"
+        }
+        create("vanilla") {
+            versionNameSuffix = "-nogps"
+            dimension = "locationBackend"
+        }
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
