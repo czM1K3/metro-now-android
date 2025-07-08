@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import dev.metronow.android.R
+import dev.metronow.android.core.data.AppLanguage
 import dev.metronow.android.features.infotext.domain.InfoText
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,7 +69,7 @@ fun InfoTextDetailScreen(
             ) {
                 screenState.infoText?.let { infoText ->
                     Text(
-                        text = infoText.textEn ?: infoText.textCz,
+                        text = infoText.getCorrectText(),
                         style = TextStyle.Default.copy(
                             lineBreak = LineBreak.Paragraph,
                             fontSize = 4.em,
@@ -121,6 +122,7 @@ fun InfoTextDetailScreen(
 }
 
 private fun LocalDateTime.customString(): String {
-    val format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    val formatString = AppLanguage.getCurrent().getFormat()
+    val format = DateTimeFormatter.ofPattern(formatString)
     return this.format(format)
 }

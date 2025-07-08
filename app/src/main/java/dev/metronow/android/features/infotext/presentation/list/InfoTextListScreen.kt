@@ -133,7 +133,7 @@ private fun LoadedState(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = infoText.textEn ?: infoText.textCz,
+                            text = infoText.getCorrectText(),
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

@@ -22,8 +22,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.metronow.android.R
 import dev.metronow.android.core.presentation.CustomCard
 import dev.metronow.android.core.presentation.CustomCardState
 import dev.metronow.android.core.presentation.secondsToString
@@ -51,7 +53,10 @@ private fun StopsScreen(
                 title = {
                     if (!screenState.loadingMetro) {
                         Text(
-                            text = "Updated ${screenState.secondsFromLastFetch.secondsToString()} ago",
+                            text = stringResource(
+                                R.string.updated,
+                                screenState.secondsFromLastFetch.secondsToString()
+                            ),
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     }

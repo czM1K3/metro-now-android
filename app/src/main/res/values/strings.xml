@@ -1,11 +1,11 @@
 <resources>
     <string name="app_name">metro now</string>
     <string name="permission_request">Location permission request</string>
-    <string name="ok">OK</string>
+    <string name="ok" translatable="false">OK</string>
     <string name="rationale">This app doesn\'t work without location permission</string>
-    <string name="no_location">No location</string>
+    <string name="no_location">No location access</string>
     <string name="go_to_settings">Go to settings</string>
-    <string name="metro">Metro</string>
+    <string name="metro" translatable="false">Metro</string>
     <string name="also_in">Also in %1$s</string>
     <string name="empty">Empty</string>
     <string name="nothing">There is nothing to show</string>
@@ -17,7 +17,8 @@
     <string name="high">High</string>
     <string name="normal">Normal</string>
     <string name="low">Low</string>
-    <string name="pid_logo">PID Logo</string>
+    <string name="pid_logo" translatable="false">PID Logo</string>
     <string name="priority">"Priority: "</string>
+    <string name="updated">Updated %1$s ago</string>
 
 </resources>
