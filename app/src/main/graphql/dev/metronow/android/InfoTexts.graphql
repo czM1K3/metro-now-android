@@ -1,0 +1,10 @@
+query InfoTexts {
+    infotexts{
+        id
+        text
+        textEn
+        validFrom
+        validTo
+        priority
+    }
+}

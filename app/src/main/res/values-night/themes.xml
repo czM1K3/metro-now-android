@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MetroNow" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorBackground">@color/custom_dark_background_color</item>
+    </style>
+</resources>

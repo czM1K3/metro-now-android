@@ -1,0 +1,17 @@
+query Departures ($platformIds: [ID!]!) {
+    departures(platformIds: $platformIds) {
+        headsign
+        departureTime {
+            predicted
+        }
+        platform {
+            id
+        }
+        route {
+            name
+            isSubstitute
+            vehicleType
+            isNight
+        }
+    }
+}

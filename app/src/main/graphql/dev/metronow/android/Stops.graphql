@@ -1,0 +1,16 @@
+query Stops {
+    stops {
+        id
+        name
+        avgLatitude
+        avgLongitude
+        platforms {
+            id
+            name
+            latitude
+            longitude
+            isMetro
+            code
+        }
+    }
+}
