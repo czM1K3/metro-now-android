@@ -7,5 +7,5 @@ You can download latest version on [Google Play](https://play.google.com/store/a
 ## Useful commands
 ### Download schema from API
 ```bash
-./gradlew :app:downloadApolloSchema --endpoint='https://api.metronow.dev/graphql' --schema=app/src/main/graphql/dev/metronow/android/schema.graphqls
+./gradlew :app:downloadApolloSchema --endpoint='https://api.metro.madsoft.cz/graphql' --schema=app/src/main/graphql/dev/metronow/android/schema.graphqls
 ```

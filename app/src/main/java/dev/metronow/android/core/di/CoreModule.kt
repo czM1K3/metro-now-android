@@ -8,6 +8,6 @@ import org.koin.dsl.module
 
 val coreModule = module {
     single { MetroDatabase.newInstance(androidContext()) }
-    single { ApolloClient.Builder().serverUrl("https://api.metronow.dev/graphql").build() }
+    single { ApolloClient.Builder().serverUrl("https://api.metro.madsoft.cz/graphql").build() }
     single { UpdateFlow() }
 }
