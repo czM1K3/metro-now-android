@@ -11,8 +11,8 @@ Data comes from the metro now GraphQL API (`https://api.metro.madsoft.cz/graphql
 
 | Document | What it covers |
 | --- | --- |
-| [architecture.md](architecture.md) | Package layout, layers, dependency injection, navigation, theming |
-| [features.md](features.md) | How each feature works: location, closest stops, departures, info texts |
+| [architecture.md](architecture.md) | Modules (`:app`, `:shared`, `:wear`), package layout, layers, dependency injection, navigation, theming |
+| [features.md](features.md) | How each feature works: location, closest stops, departures, info texts, the Wear OS app |
 | [data.md](data.md) | GraphQL API, Room database, DataStore, caching rules |
 | [building.md](building.md) | Toolchain, product flavors, build types, CI, releasing, updating the schema |
 | [development.md](development.md) | Conventions, adding a feature, localization, testing, known quirks |
@@ -28,6 +28,9 @@ Data comes from the metro now GraphQL API (`https://api.metro.madsoft.cz/graphql
 
 # Install on a connected device or emulator
 ./gradlew :app:installGmsDebug
+
+# Wear OS debug build (standalone watch app)
+./gradlew :wear:assembleDebug
 
 # Everything CI runs: all variants, lint and unit tests
 ./gradlew build

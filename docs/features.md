@@ -100,3 +100,34 @@ Info texts are PID service notices: disruptions, closures and similar.
 - **List** (`InfoTextsListScreen` / `InfoTextsListViewModel`): calls `InfoTextRepository.getInfoTexts()` once on creation. That fetches from the API, **replaces** the Room table, and returns the list. Each card has a border in its priority color and shows the text on one line, cut off with an ellipsis.
 - **Detail** (`InfoTextDetailScreen` / `InfoTextDetailVIewModel`): loads the text by ID **from Room only**, so it relies on the list having been fetched first. It shows the full text, the valid-from/valid-to dates formatted for the current language, the priority, and a PID logo loaded with Coil from a remote URL.
 - **Language:** `InfoText.getCorrectText()` returns `textEn` (falling back to `textCz`) unless the device language is Czech. `AppLanguage.getCurrent()` reads the first locale in `LocaleListCompat.getDefault()`.
+
+## Wear OS (`:wear`)
+
+The watch app is a **standalone** Wear OS app: it calls the GraphQL API directly and gets its own location (fused location, `gms` only). There is no phone↔watch communication. v1 has only the departures screen; there are no info texts, tiles, complications or ambient mode.
+
+### Departures screen
+
+`WearDeparturesScreen` uses the same `StopsViewModel` and `StopsScreenState` as the phone:
+
+- **Permission gate** (`WearLocationPermission`): the same logic as the phone, styled for Wear. When permission is missing it shows the `no_location` header, the `rationale` text and one button. If a rationale should be shown, the button asks again; otherwise the request is launched once and the button opens the app's system settings page.
+- **Layout:** `ScreenScaffold` with a `TransformingLazyColumn`. The list state is passed to `ScreenScaffold`, so the scroll indicator works, and the column handles rotary (crown/bezel) scrolling. `ScreenScaffold`'s default content padding keeps rows clear of round edges.
+- **TimeText** shows the time and "Updated X ago" (shared `updated` string) once the metro section has loaded.
+- **Spinner** until `closestStops` is non-null.
+- **Sections** come from `StopsScreenState.toDepartureListItems()` (`DepartureListItems.kt`), which copies the phone's selection logic: a metro header (stop name + "Metro") with the first route group of each metro platform, then one section per non-metro platform of the closest stop titled `"<stop name> <platform code>"`. Platforms without a code have no header and show one row per departure. Each section shows a small spinner while `loadingMetro` / `loadingOther` is true, and the shared `empty` string when it has no departures. Because a watch row shows only one departure, route groups with no remaining departures are skipped, and the metro section also shows `empty` when it has no rows.
+- **Rows** (`WearDepartureRow`): the route badge (`RouteDetail.toColor()`, white text), the headsign on one line with an ellipsis, and the first countdown. There is no "Also in" line and no second headsign.
+
+### Power-tuned settings
+
+`wearModule` provides settings that save battery compared to the phone:
+
+| Setting | Phone (`appModule`) | Watch (`wearModule`) |
+| --- | --- | --- |
+| Countdown tick (`RefreshConfig.tickMillis`) | 1 s | 1 s |
+| Departure refetch (`RefreshConfig.reFetchMillis`) | 10 s | 30 s |
+| Location interval (`LocationConfig.intervalMillis`) | 2 s | 10 s |
+| Minimum distance (`LocationConfig.minDistanceMeters`) | 30 m | 50 m |
+| Accuracy (`LocationConfig.highAccuracy`) | high (`PRIORITY_HIGH_ACCURACY`) | balanced (`PRIORITY_BALANCED_POWER_ACCURACY`) |
+
+`StopsViewModel` stops location updates and timers 5 s after the screen stops collecting its state, so nothing runs while the app is in the background or the screen is off.
+
+On first launch the watch downloads the whole stop list to fill its Room cache. Over a Bluetooth proxy to the phone this can take noticeably longer than on a phone.

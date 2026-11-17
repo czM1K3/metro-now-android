@@ -5,7 +5,7 @@ It is a Kotlin, Jetpack Compose and Material 3 Android app split into Gradle mod
 ## Modules
 
 ```
-settings.gradle.kts: include(":app", ":shared")
+settings.gradle.kts: include(":app", ":shared", ":wear")
 
 :shared  com.android.library      namespace dev.metronow.android.shared
          Apollo + GraphQL, Room, DataStore, all data/domain code, UpdateFlow,
@@ -13,7 +13,12 @@ settings.gradle.kts: include(":app", ":shared")
          locationBackend flavors (gms/vanilla), shared strings, color mappings
 :app     com.android.application  namespace dev.metronow.android
          phone UI, flavors gms/vanilla, depends on :shared
+:wear    com.android.application  namespace dev.metronow.android.wear
+         standalone Wear OS app (departures only), applicationId
+         dev.metronow.android, gms only, depends on :shared
 ```
+
+`:wear` declares no flavors; `missingDimensionStrategy("locationBackend", "gms")` picks the `gms` variant of `:shared`. It must never reference vanilla-only code.
 
 Moving code between modules keeps its Kotlin package (`dev.metronow.android.core…`, `dev.metronow.android.features…`), so only the module changes. `:shared` exposes Koin, `lifecycle-viewmodel` and Compose `ui-graphics` as `api` dependencies; Apollo, Room, DataStore and Play Services location are internal to it.
 
@@ -57,6 +62,26 @@ shared/src/vanilla/java/.../features/location/data/LocationDataSource.kt  androi
 
 `:app` declares the same `locationBackend` flavors, so Gradle matches `gms` → `gms` and `vanilla` → `vanilla`.
 
+### `:wear` package layout
+
+Code lives in `wear/src/main/java/dev/metronow/android/wear/`:
+
+```
+dev.metronow.android.wear
+├── WearApp.kt                  Application: starts Koin with sharedModules + wearModule
+├── MainActivity.kt             WearAppTheme { WearNavigation() }
+├── di/WearModule.kt            Watch-tuned RefreshConfig and LocationConfig
+└── presentation/
+    ├── WearNavigation.kt       AppScaffold { SwipeDismissableNavHost } with one string route
+    ├── theme/WearAppTheme.kt   Wear Material 3 theme: dynamic color, else a dark brand scheme
+    ├── permission/
+    │   └── WearLocationPermission.kt  Permission gate (Accompanist), same logic as the phone
+    └── departures/
+        ├── WearDeparturesScreen.kt    koinViewModel<StopsViewModel>() + stateless content
+        ├── DepartureListItems.kt      StopsScreenState → flat list of headers/rows (pure, unit-tested)
+        └── WearDepartureRow.kt        Route badge, one-line headsign, first countdown
+```
+
 GraphQL operations and the schema live in `shared/src/main/graphql/dev/metronow/android/`.
 
 **Resources.** Strings used by more than one app (`app_name`, `metro`, `also_in`, `empty`, `updated`, `rationale`, `no_location`, `go_to_settings`, `ok`) are in `shared/src/main/res/values{,-cs}/strings.xml`. R classes are non-transitive, so code that uses them imports `dev.metronow.android.shared.R` (with an alias such as `SharedR` when the file also needs the app's `R`).
@@ -97,6 +122,9 @@ modules(sharedModules + appModule)
 | `departureModule` | `:shared` | `DepartureRemoteDataSource`, `DepartureRepository` |
 | `infoTextModule` | `:shared` | `InfoTextRemoteDataSource`, `InfoTextDao`, `InfoTextLocalDataSource`, `InfoTextRepository` |
 | `appModule` | `:app` | `RefreshConfig()` and `LocationConfig()` with phone defaults, both info text ViewModels |
+| `wearModule` | `:wear` | `RefreshConfig(tickMillis = 1_000, reFetchMillis = 30_000)` and `LocationConfig(intervalMillis = 10_000, minDistanceMeters = 50f, highAccuracy = false)` |
+
+`WearApp.onCreate` starts Koin with `modules(sharedModules + wearModule)`. The watch registers the info text bindings from `sharedModules` too, but nothing on the watch uses them.
 
 `sharedModules` (in `core/di/SharedModules.kt`) lists the five shared modules. It deliberately does **not** provide `RefreshConfig` or `LocationConfig`: every app supplies its own, tuned for the device.
 
@@ -118,9 +146,13 @@ sealed interface Screens {
 - `InfoText` reads its `id` in the ViewModel with `savedStateHandle.toRoute<Screens.InfoText>()`.
 - Transitions: a slide-in from the left on forward navigation and a slide-out to the right on pop. There is no exit or pop-enter animation.
 
+**Watch.** `wear/.../presentation/WearNavigation.kt` wraps a `SwipeDismissableNavHost` in Wear Material 3's `AppScaffold`. Wear Compose Navigation has no type-safe routes, so it uses a string route (`"departures"`). The only destination is `WearLocationPermission { WearDeparturesScreen() }`.
+
 ## Theming
 
-`AppTheme` in `core/presentation/ui/theme/Theme.kt` uses dynamic color on Android 12+ and otherwise falls back to the generated Material 3 light/dark schemes in `Color.kt`. `Color.kt` also defines medium- and high-contrast schemes, but nothing uses them yet.
+`AppTheme` (phone) in `core/presentation/ui/theme/Theme.kt` uses dynamic color on Android 12+ and otherwise falls back to the generated Material 3 light/dark schemes in `Color.kt`. `Color.kt` also defines medium- and high-contrast schemes, but nothing uses them yet.
+
+`WearAppTheme` (watch) uses Wear Material 3's `dynamicColorScheme(context)` when the watch provides one, and otherwise a dark `ColorScheme` built from the phone's dark brand colors.
 
 Transit-specific colors are not theme colors. They are extension functions in the features' `presentation` packages, so the domain stays free of Compose:
 
