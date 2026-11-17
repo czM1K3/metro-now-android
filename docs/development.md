@@ -28,7 +28,7 @@ The app supports English (default `values/`) and Czech (`values-cs/`). Data from
 
 ## Testing
 
-`StopsViewModelTest` (JVM, `shared/src/test`, run with `./gradlew :shared:testGmsDebugUnitTest`) covers countdowns, "seconds since last fetch", refetching, and stopping work without subscribers. It uses fake repositories (the three repositories the ViewModel needs are interfaces), an `UpdateFlow` built from `RefreshConfig`, a clock tied to the test scheduler, and `kotlinx-coroutines-test` virtual time. Avoid inline-mocking libraries such as mockk: unit tests run on the Java 8 toolchain, where agent attachment can fail.
+`StopsViewModelTest` (JVM, `shared/src/test`, run with `./gradlew :shared:testGmsDebugUnitTest`) covers countdowns, "seconds since last fetch", refetching, and stopping work without subscribers. It uses fake repositories (the three repositories the ViewModel needs are interfaces, so no mocking library is needed), an `UpdateFlow` built from `RefreshConfig`, a clock tied to the test scheduler, and `kotlinx-coroutines-test` virtual time.
 
 JUnit 4, AndroidX test, Espresso and Compose UI test are also on the classpath. These pure functions are easy next targets:
 

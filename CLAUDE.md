@@ -32,7 +32,7 @@ Verify changes with at least `./gradlew :app:assembleGmsDebug :app:assembleVanil
 - If you add or change a Room entity, bump the `MetroDatabase` version (the destructive fallback rebuilds the database).
 - User-visible strings go in **both** `res/values/strings.xml` and `res/values-cs/strings.xml`. Strings used by more than one app live in `:shared` res and are referenced via `dev.metronow.android.shared.R` (R classes are non-transitive; alias it, e.g. `SharedR`, when a file also needs the app's `R`).
 - Screens: a public composable takes the ViewModel via `koinViewModel()` and calls a private stateless composable. The ViewModel exposes `screenStateStream: StateFlow`.
-- Dependency versions belong in `gradle/libs.versions.toml`. Bytecode targets Java 8 with core library desugaring (minSdk 24).
+- Dependency versions belong in `gradle/libs.versions.toml`. Toolchain: AGP 9 with built-in Kotlin (don't apply `kotlin.android` in modules), Gradle 9.6, `jvmToolchain(17)`, compileSdk 37, core library desugaring (minSdk 24 on the phone).
 - Don't rename `InfoTextDetailVIewModel` (typo) or `fit_datastore` casually. See `docs/development.md#known-quirks`.
 
 ## Docs

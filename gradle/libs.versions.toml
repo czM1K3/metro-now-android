@@ -1,22 +1,22 @@
 [versions]
-agp = "8.11.0"
-apollo = "4.3.1"
+agp = "9.5.1"
+apollo = "4.4.4"
 coilComposeVersion = "2.7.0"
 desugar_jdk_libs = "2.1.5"
-kotlin = "2.2.0"
+kotlin = "2.3.21"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.1"
+lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.10.1"
-composeBom = "2025.06.01"
+composeBom = "2026.09.00"
 android-navigation = "2.9.1"
 kotlin-serialization-json = "1.9.0"
 koin = "4.1.0"
 datastorePreferences = "1.1.7"
 android-room = "2.7.2"
-ksp = "2.1.20-2.0.0"
+ksp = "2.3.14"
 gms-play-services-location = "21.3.0"
 accompanistPermissions = "0.37.3"
 kotlinxCoroutines = "1.9.0"
@@ -41,6 +41,7 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 android-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "android-navigation" }
 kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlin-serialization-json" }
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
