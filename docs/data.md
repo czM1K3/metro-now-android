@@ -3,8 +3,8 @@
 ## GraphQL API (Apollo Kotlin 4)
 
 - **Endpoint:** `https://api.metro.madsoft.cz/graphql`, hardcoded in `core/di/CoreModule.kt`.
-- **Apollo service:** `service`, package `dev.metronow.android` (`app/build.gradle.kts`). Generated classes are `dev.metronow.android.<Name>Query`, and enums are in `dev.metronow.android.type`.
-- **Operations** live in `app/src/main/graphql/dev/metronow/android/`:
+- **Apollo service:** `service`, package `dev.metronow.android` (`shared/build.gradle.kts`). Generated classes are `dev.metronow.android.<Name>Query`, and enums are in `dev.metronow.android.type`.
+- **Operations** live in `shared/src/main/graphql/dev/metronow/android/`:
 
 | File | Query | Used by |
 | --- | --- | --- |
@@ -15,13 +15,13 @@
 - **Schema:** `schema.graphqls` is a checked-in copy of the server schema. To update it:
 
   ```bash
-  ./gradlew :app:downloadApolloSchema --endpoint='https://api.metro.madsoft.cz/graphql' --schema=app/src/main/graphql/dev/metronow/android/schema.graphqls
+  ./gradlew :shared:downloadApolloSchema --endpoint='https://api.metro.madsoft.cz/graphql' --schema=shared/src/main/graphql/dev/metronow/android/schema.graphqls
   ```
 
   After updating it, rebuild and fix the mappers if enums gained values. Every `when` over a generated enum handles `UNKNOWN__`.
 
 - **Custom scalars** are not mapped. They arrive as `Any` and are cast with `as String`, then parsed with `DateTimeFormatter.ISO_DATE_TIME`. Fields affected: `departureTime.predicted`, `validFrom` and `validTo`.
-- **Errors:** remote data sources return `response.data?.… ?: emptyList()`, so a network or GraphQL error looks like an empty result. `StopRepository` skips the cache replace when the stop list comes back empty.
+- **Errors:** remote data sources return `response.data?.… ?: emptyList()`, so a network or GraphQL error looks like an empty result. `StopRepositoryImpl` skips the cache replace when the stop list comes back empty.
 
 ## Room database
 
@@ -45,7 +45,7 @@ Renaming the store or the key isn't harmful, but it forces one refetch for every
 
 ### Stop cache refresh
 
-`StopRepository.stopsLocalCacheUpdate()` runs before every closest-stop lookup, which happens on every location update. It refetches the full stop list when either of these is true:
+`StopRepositoryImpl.stopsLocalCacheUpdate()` runs before every closest-stop lookup, which happens on every location update. It refetches the full stop list when either of these is true:
 
 - more than **30 days** have passed since `fetch_date`, or
 - the `stop` table is empty.

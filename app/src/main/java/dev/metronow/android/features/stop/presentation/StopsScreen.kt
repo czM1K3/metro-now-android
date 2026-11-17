@@ -25,7 +25,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.metronow.android.R
+import dev.metronow.android.shared.R
 import dev.metronow.android.core.presentation.CustomCard
 import dev.metronow.android.core.presentation.CustomCardState
 import dev.metronow.android.core.presentation.secondsToString
@@ -103,6 +103,7 @@ private fun LoadedState(screenState: StopsScreenState) {
             .padding(all = 8.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        val closestStops = screenState.closestStops ?: return@Column
         val metroState = if (screenState.loadingMetro) {
             CustomCardState.Loading
         } else {
@@ -111,11 +112,11 @@ private fun LoadedState(screenState: StopsScreenState) {
 
         // Metro on top
         CustomCard(
-            title = screenState.closestStops!!.closestMetroStop.name,
+            title = closestStops.closestMetroStop.name,
             isMetro = true,
             state = metroState,
         ) {
-            screenState.closestStops.closestMetroStop.platforms.filter { it.isMetro }
+            closestStops.closestMetroStop.platforms.filter { it.isMetro }
                 .forEach { platform ->
                     screenState.departures[platform.id]?.entries?.firstOrNull()
                         ?.let { departuresMap ->
@@ -129,7 +130,7 @@ private fun LoadedState(screenState: StopsScreenState) {
 
         // Others under the metro
         // Going over each non-metro platform on closest stop
-        screenState.closestStops.closestStop.platforms.filter { !it.isMetro }.forEach { platform ->
+        closestStops.closestStop.platforms.filter { !it.isMetro }.forEach { platform ->
             val currentPlatform = screenState.departures[platform.id]?.toList()
             val otherState = if (screenState.loadingOther) {
                 CustomCardState.Loading
@@ -142,7 +143,7 @@ private fun LoadedState(screenState: StopsScreenState) {
             CustomCard(
                 // Title is nullable because long distance busses and trains don't have platform
                 // from PID
-                title = if (platform.code.isNullOrEmpty()) null else "${screenState.closestStops.closestStop.name} ${platform.code}",
+                title = if (platform.code.isNullOrEmpty()) null else "${closestStops.closestStop.name} ${platform.code}",
                 state = otherState,
             ) {
                 currentPlatform?.forEachIndexed { i, (route, departures) ->

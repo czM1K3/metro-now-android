@@ -1,43 +1,65 @@
 # Architecture
 
-It is a single-module (`:app`) Android app built with Kotlin, Jetpack Compose and Material 3. The code is grouped **by feature**, and each feature has a `data` / `domain` / `presentation` / `di` split.
+It is a Kotlin, Jetpack Compose and Material 3 Android app split into Gradle modules. The code is grouped **by feature**, and each feature has a `data` / `domain` / `presentation` / `di` split.
+
+## Modules
+
+```
+settings.gradle.kts: include(":app", ":shared")
+
+:shared  com.android.library      namespace dev.metronow.android.shared
+         Apollo + GraphQL, Room, DataStore, all data/domain code, UpdateFlow,
+         LanguageHelper, SecondsHelper, StopsViewModel, Koin sharedModules,
+         locationBackend flavors (gms/vanilla), shared strings, color mappings
+:app     com.android.application  namespace dev.metronow.android
+         phone UI, flavors gms/vanilla, depends on :shared
+```
+
+Moving code between modules keeps its Kotlin package (`dev.metronow.android.core…`, `dev.metronow.android.features…`), so only the module changes. `:shared` exposes Koin, `lifecycle-viewmodel` and Compose `ui-graphics` as `api` dependencies; Apollo, Room, DataStore and Play Services location are internal to it.
 
 ## Package layout
 
-All code lives under `app/src/main/java/dev/metronow/android/`.
+Both modules use the package `dev.metronow.android`. Code lives in `shared/src/main/java/dev/metronow/android/` and `app/src/main/java/dev/metronow/android/`.
 
 ```
 dev.metronow.android
-├── App.kt                      Application: starts Koin with all modules
-├── MainActivity.kt             Single activity: edge-to-edge, AppTheme, Navigation()
+├── App.kt                      [app] Application: starts Koin with sharedModules + appModule
+├── MainActivity.kt             [app] Single activity: edge-to-edge, AppTheme, Navigation()
+├── di/AppModule.kt             [app] RefreshConfig, LocationConfig, info text ViewModels
 ├── core/
-│   ├── data/
+│   ├── data/                   [shared]
 │   │   ├── db/MetroDatabase.kt Room database (stops, platforms, info texts)
 │   │   ├── LanguageHelper.kt   AppLanguage enum (EN/CS) + date format per language
 │   │   ├── RefreshConfig.kt    Tick and refetch intervals (phone: 1 s / 10 s)
 │   │   └── UpdateFlow.kt       Ticker flows built from RefreshConfig
-│   ├── di/CoreModule.kt        Database, ApolloClient, RefreshConfig, UpdateFlow singletons
+│   ├── di/                     [shared]
+│   │   ├── CoreModule.kt       Database, ApolloClient, UpdateFlow singletons
+│   │   └── SharedModules.kt    sharedModules: the list every app passes to Koin
 │   └── presentation/
-│       ├── CustomCard.kt       Card with Empty / Loading / Showing states
-│       ├── SecondsHelper.kt    Double.secondsToString(): "1h 5m", "3m 20s", "-12s"
-│       └── ui/
+│       ├── SecondsHelper.kt    [shared] Double.secondsToString(): "1h 5m", "3m 20s", "-12s"
+│       ├── CustomCard.kt       [app] Card with Empty / Loading / Showing states
+│       └── ui/                 [app]
 │           ├── Navigation.kt   Type-safe NavHost + Screens sealed interface
 │           └── theme/          Material 3 colors, theme (dynamic color on 12+), typography
 └── features/
-    ├── departure/              Fetching and grouping departures, DepartureItem UI
-    ├── infotext/               Service disruption notices (list + detail screens)
-    ├── location/               Location flow + permission UI
-    └── stop/                   Stop/platform cache, closest-stop lookup, main screen
+    ├── departure/              data/domain/di + RouteDetailColor [shared]; DepartureItem [app]
+    ├── infotext/               data/domain/di + PriorityColor [shared]; screens + ViewModels [app]
+    ├── location/               data/domain/di [shared]; permission UI [app]
+    └── stop/                   data/domain/di + StopsViewModel [shared]; StopsScreen [app]
 ```
 
 Flavor-specific sources:
 
 ```
-app/src/gms/java/.../features/location/data/LocationDataSource.kt      FusedLocationProviderClient
-app/src/vanilla/java/.../features/location/data/LocationDataSource.kt  android.location.LocationManager
+shared/src/gms/java/.../features/location/data/LocationDataSource.kt      FusedLocationProviderClient
+shared/src/vanilla/java/.../features/location/data/LocationDataSource.kt  android.location.LocationManager
 ```
 
-GraphQL operations and the schema live in `app/src/main/graphql/dev/metronow/android/`.
+`:app` declares the same `locationBackend` flavors, so Gradle matches `gms` → `gms` and `vanilla` → `vanilla`.
+
+GraphQL operations and the schema live in `shared/src/main/graphql/dev/metronow/android/`.
+
+**Resources.** Strings used by more than one app (`app_name`, `metro`, `also_in`, `empty`, `updated`, `rationale`, `no_location`, `go_to_settings`, `ok`) are in `shared/src/main/res/values{,-cs}/strings.xml`. R classes are non-transitive, so code that uses them imports `dev.metronow.android.shared.R` (with an alias such as `SharedR` when the file also needs the app's `R`).
 
 ## Layers
 
@@ -61,21 +83,24 @@ The rules:
 
 ## Dependency injection (Koin)
 
-`App.onCreate` starts Koin with these modules:
+`App.onCreate` starts Koin with the shared modules plus the phone's own module:
 
 ```kotlin
-modules(coreModule, stopModule, locationModule, departureModule, infoTextModule)
+modules(sharedModules + appModule)
 ```
 
-| Module | Provides |
-| --- | --- |
-| `coreModule` | `MetroDatabase` (single), `ApolloClient` (single, endpoint hardcoded), `RefreshConfig` (single), `UpdateFlow` (single) |
-| `stopModule` | `StopRemoteDataSource`, DAOs, `StopLocalDataSource`, `PlatformLocalDataSource`, `StopDataSource`, `StopRepository`, `StopsViewModel` |
-| `locationModule` | `LocationDataSource` (flavor-specific), `LocationConfig`, `LocationRepository` |
-| `departureModule` | `DepartureRemoteDataSource`, `DepartureRepository` |
-| `infoTextModule` | `InfoTextRemoteDataSource`, `InfoTextDao`, `InfoTextLocalDataSource`, `InfoTextRepository`, both info text ViewModels |
+| Module | Where | Provides |
+| --- | --- | --- |
+| `coreModule` | `:shared` | `MetroDatabase` (single), `ApolloClient` (single, endpoint hardcoded), `UpdateFlow` (single, built from `RefreshConfig`) |
+| `stopModule` | `:shared` | `StopRemoteDataSource`, DAOs, `StopLocalDataSource`, `PlatformLocalDataSource`, `StopDataSource`, `StopRepository`, `StopsViewModel` |
+| `locationModule` | `:shared` | `LocationDataSource` (flavor-specific, needs `LocationConfig`), `LocationRepository` |
+| `departureModule` | `:shared` | `DepartureRemoteDataSource`, `DepartureRepository` |
+| `infoTextModule` | `:shared` | `InfoTextRemoteDataSource`, `InfoTextDao`, `InfoTextLocalDataSource`, `InfoTextRepository` |
+| `appModule` | `:app` | `RefreshConfig()` and `LocationConfig()` with phone defaults, both info text ViewModels |
 
-The conventions are `factoryOf` for data sources, `singleOf` for repositories, `single { get<MetroDatabase>().xDao() }` for DAOs, and `viewModelOf` for ViewModels (`StopsViewModel` uses `viewModel { StopsViewModel(get(), get(), get(), get()) }` because its last parameter, the clock, has a default value). **A new module must be added to the list in `App.kt`.**
+`sharedModules` (in `core/di/SharedModules.kt`) lists the five shared modules. It deliberately does **not** provide `RefreshConfig` or `LocationConfig`: every app supplies its own, tuned for the device.
+
+The conventions are `factoryOf` for data sources, `singleOf` for repositories, `single { get<MetroDatabase>().xDao() }` for DAOs, and `viewModelOf` for ViewModels (`StopsViewModel` uses `viewModel { StopsViewModel(get(), get(), get(), get()) }` because its last parameter, the clock, has a default value). **New shared modules go in `sharedModules`; app-specific ones go in that app's module list.**
 
 ## Navigation
 

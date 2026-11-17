@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "metro now"
-include(":app")
+include(":app", ":shared")

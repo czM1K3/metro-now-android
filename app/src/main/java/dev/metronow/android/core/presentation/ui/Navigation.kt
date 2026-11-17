@@ -13,7 +13,7 @@ import dev.metronow.android.features.infotext.presentation.list.InfoTextsListScr
 import dev.metronow.android.features.location.presentation.LocationNotAvailable
 import dev.metronow.android.features.location.presentation.LocationPermission
 import dev.metronow.android.features.stop.presentation.StopsScreen
-import dev.metronow.android.R
+import dev.metronow.android.shared.R
 
 import kotlinx.serialization.Serializable
 

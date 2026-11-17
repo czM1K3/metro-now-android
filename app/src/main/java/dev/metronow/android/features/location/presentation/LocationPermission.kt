@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import dev.metronow.android.R
+import dev.metronow.android.shared.R as SharedR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -40,7 +41,7 @@ fun LocationPermission(
                         text = { Text(rationale) },
                         confirmButton = {
                             Button(onClick = { permissionState.launchMultiplePermissionRequest() }) {
-                                Text(text = stringResource(id = R.string.ok))
+                                Text(text = stringResource(id = SharedR.string.ok))
                             }
                         }
                     )

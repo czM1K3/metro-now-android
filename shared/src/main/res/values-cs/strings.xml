@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">metro now</string>
+    <string name="rationale">Tato aplikace nefunguje bez povolení přístupu k poloze</string>
+    <string name="no_location">Přísup k poloze nepovolen</string>
+    <string name="go_to_settings">Přejít do nastavení</string>
+    <string name="also_in">Další za %1$s</string>
+    <string name="empty">Nic</string>
+    <string name="updated">Aktualizováno před %1$s</string>
+</resources>

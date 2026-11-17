@@ -3,14 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.apollo.client)
-    alias(libs.plugins.ksp)
-}
-
-apollo {
-    service("service") {
-        packageName.set("dev.metronow.android")
-    }
 }
 
 android {
@@ -65,6 +57,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":shared"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -75,24 +68,17 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.apollo.runtime)
     implementation(libs.android.navigation.compose)
     implementation(libs.kotlin.serialization.json)
     implementation(platform(libs.koin.bom))
-    implementation(libs.koin.android)
     implementation(libs.koin.android.compose)
-    implementation(libs.datastore.preferences)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    implementation(libs.android.room)
-    ksp(libs.android.room.compiler)
-    "gmsImplementation"(libs.gms.play.services.location)
     implementation(libs.accompanist.permissions)
     implementation(libs.coil.kt.coil.compose)
 }

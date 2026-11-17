@@ -6,19 +6,19 @@
 - **Package by feature** under `dev.metronow.android.features.<feature>`, with `data/api`, `data/db`, `data/ds`, `domain`, `presentation` and `di` subpackages as needed. See [architecture.md](architecture.md).
 - **Mappers** are top-level extension functions named `toDomain()` / `toDb()` in a `*Mapper.kt` file next to the type they convert from.
 - **State:** each ViewModel has one private `MutableStateFlow<XScreenState>` exposed as `screenStateStream`. Screens collect it with `collectAsStateWithLifecycle()`.
-- **Strings:** every user-visible string goes in `res/values/strings.xml` **and** `res/values-cs/strings.xml`. Mark strings that must not be translated with `translatable="false"`.
+- **Strings:** every user-visible string goes in `res/values/strings.xml` **and** `res/values-cs/strings.xml`. Strings used by more than one app go in `:shared` (`shared/src/main/res/`) and are referenced as `dev.metronow.android.shared.R`. Mark strings that must not be translated with `translatable="false"`.
 - **Dates:** use `java.time` (desugared). Show dates to the user with `AppLanguage.getCurrent().getFormat()`.
 
 ## Adding a feature
 
-1. Create `features/<name>/` with the layers you need.
-2. If it needs API data, add a `.graphql` operation under `app/src/main/graphql/dev/metronow/android/` and build, which generates `<Name>Query`. Then write a `RemoteDataSource` and a mapper to a domain class.
+1. Create `features/<name>/` with the layers you need. Data, domain, DI and ViewModels that more than one app could use go in `shared/src/main/java/`; screens go in `app/src/main/java/`. Keep the same package in both modules.
+2. If it needs API data, add a `.graphql` operation under `shared/src/main/graphql/dev/metronow/android/` and build, which generates `<Name>Query`. Then write a `RemoteDataSource` and a mapper to a domain class.
 3. If it needs persistence:
    - add a `Db*` `@Entity` and a `@Dao`
    - register the entity in `MetroDatabase`'s `entities` array
    - add an abstract DAO getter
    - **bump `version`**: the destructive fallback will wipe and recreate the database
-4. Create a Koin module in `features/<name>/di/` and **add it to `startKoin { modules(...) }` in `App.kt`**.
+4. Create a Koin module in `features/<name>/di/`. **Add a shared module to `sharedModules`** (`core/di/SharedModules.kt`); put app-only bindings (screens' ViewModels, device settings) in that app's module (`appModule` for the phone).
 5. For a new screen, add a `@Serializable` entry to `Screens` and a `composable<Screens.X> { ... }` block in `Navigation.kt`.
 6. Add strings in both languages.
 
@@ -28,7 +28,7 @@ The app supports English (default `values/`) and Czech (`values-cs/`). Data from
 
 ## Testing
 
-`StopsViewModelTest` (JVM, `app/src/test`) covers countdowns, "seconds since last fetch", refetching, and stopping work without subscribers. It uses fake repositories (the three repositories the ViewModel needs are interfaces), an `UpdateFlow` built from `RefreshConfig`, a clock tied to the test scheduler, and `kotlinx-coroutines-test` virtual time. Avoid inline-mocking libraries such as mockk: unit tests run on the Java 8 toolchain, where agent attachment can fail.
+`StopsViewModelTest` (JVM, `shared/src/test`, run with `./gradlew :shared:testGmsDebugUnitTest`) covers countdowns, "seconds since last fetch", refetching, and stopping work without subscribers. It uses fake repositories (the three repositories the ViewModel needs are interfaces), an `UpdateFlow` built from `RefreshConfig`, a clock tied to the test scheduler, and `kotlinx-coroutines-test` virtual time. Avoid inline-mocking libraries such as mockk: unit tests run on the Java 8 toolchain, where agent attachment can fail.
 
 JUnit 4, AndroidX test, Espresso and Compose UI test are also on the classpath. These pure functions are easy next targets:
 

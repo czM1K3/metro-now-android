@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import dev.metronow.android.core.presentation.secondsToString
 import dev.metronow.android.features.departure.domain.DepartureWithCountdown
 import dev.metronow.android.features.departure.domain.RouteDetail
-import dev.metronow.android.R
+import dev.metronow.android.shared.R
 
 @Composable
 fun DepartureItem(
