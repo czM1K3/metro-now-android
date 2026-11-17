@@ -1,6 +1,5 @@
 package dev.metronow.android.features.infotext.domain
 
-import androidx.compose.ui.graphics.Color
 import dev.metronow.android.core.data.AppLanguage
 import java.time.LocalDateTime
 
@@ -15,13 +14,7 @@ data class InfoText(
     enum class Priority {
         LOW,
         NORMAL,
-        HIGH;
-
-        fun toColor() = when (this) {
-            HIGH -> Color.Red
-            NORMAL -> Color(0xFF007EFF)
-            LOW -> Color(0xFF00C604)
-        }
+        HIGH
     }
 
     fun getCorrectText() = when (AppLanguage.getCurrent()) {

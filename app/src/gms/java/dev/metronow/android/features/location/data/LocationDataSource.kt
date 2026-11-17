@@ -9,23 +9,30 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import dev.metronow.android.features.location.domain.Coordinates
+import dev.metronow.android.features.location.domain.LocationConfig
 import dev.metronow.android.features.location.domain.toDomain
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
 class LocationDataSource(
-    private val context: Context
+    private val context: Context,
+    private val config: LocationConfig,
 ) {
     @SuppressLint("MissingPermission")
     fun locationFlow(): Flow<Coordinates> = callbackFlow {
         val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
 
-        val locationRequest = LocationRequest.Builder(2000)
-            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-            .setWaitForAccurateLocation(true)
-            .setMinUpdateIntervalMillis(2000)
-            .setMinUpdateDistanceMeters(30f)
+        val priority = if (config.highAccuracy) {
+            Priority.PRIORITY_HIGH_ACCURACY
+        } else {
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY
+        }
+        val locationRequest = LocationRequest.Builder(config.intervalMillis)
+            .setPriority(priority)
+            .setWaitForAccurateLocation(config.highAccuracy)
+            .setMinUpdateIntervalMillis(config.intervalMillis)
+            .setMinUpdateDistanceMeters(config.minDistanceMeters)
             .build()
 
         val locationCallback = object : LocationCallback() {

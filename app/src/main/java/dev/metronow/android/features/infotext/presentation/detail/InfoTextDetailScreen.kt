@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter
 import dev.metronow.android.R
 import dev.metronow.android.core.data.AppLanguage
 import dev.metronow.android.features.infotext.domain.InfoText
+import dev.metronow.android.features.infotext.presentation.toColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

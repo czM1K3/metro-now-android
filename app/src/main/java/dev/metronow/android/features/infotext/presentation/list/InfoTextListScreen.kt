@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import dev.metronow.android.R
 import dev.metronow.android.features.infotext.domain.InfoText
+import dev.metronow.android.features.infotext.presentation.toColor
 
 
 @Composable

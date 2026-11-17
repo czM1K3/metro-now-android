@@ -2,12 +2,14 @@
 
 ## Location (`features/location`)
 
-`LocationRepository.locationFlow()` returns a cold `Flow<Coordinates>` from the flavor-specific `LocationDataSource`. Both implementations have the same class name and signature, so `main` code compiles against either one.
+`LocationRepository.locationFlow()` (implemented by `LocationRepositoryImpl`) returns a cold `Flow<Coordinates>` from the flavor-specific `LocationDataSource`. Both implementations have the same class name and signature (`LocationDataSource(context, LocationConfig)`), so `main` code compiles against either one.
+
+`LocationConfig` (`intervalMillis`, `minDistanceMeters`, `highAccuracy`) is provided through Koin. The phone uses the defaults: 2 s, 30 m, high accuracy.
 
 | Flavor | Implementation | Settings |
 | --- | --- | --- |
-| `gms` | `FusedLocationProviderClient` | `PRIORITY_HIGH_ACCURACY`, 2 s interval, 30 m minimum distance, waits for accurate location |
-| `vanilla` | `LocationManager` | `GPS_PROVIDER`, 2 s / 30 m; also registers `NETWORK_PROVIDER` when GPS is disabled; closes the flow with an exception when permission is missing |
+| `gms` | `FusedLocationProviderClient` | `PRIORITY_HIGH_ACCURACY` when `highAccuracy`, otherwise `PRIORITY_BALANCED_POWER_ACCURACY`; interval and minimum distance from `LocationConfig`; waits for an accurate location when `highAccuracy` |
+| `vanilla` | `LocationManager` | `GPS_PROVIDER` with the configured interval and distance (`highAccuracy` is ignored); also registers `NETWORK_PROVIDER` when GPS is disabled; closes the flow with an exception when permission is missing |
 
 Both are `callbackFlow`s that unregister in `awaitClose`.
 
@@ -22,7 +24,7 @@ The main screen is `StopsScreen` with `StopsViewModel`.
 
 ### How the closest stops are chosen
 
-`StopRepository.getClosestStops(coordinates)`:
+`StopRepository.getClosestStops(coordinates)` (implemented by `StopRepositoryImpl`):
 
 1. Refreshes the local stop cache if needed (see [data.md](data.md#stop-cache-refresh)).
 2. Runs two Room queries, each ordered by `abs(lat - userLat) + abs(lon - userLon)`. This is Manhattan distance in degrees. It is cheap and good enough within Prague, but it is not a real geographic distance.
@@ -39,22 +41,23 @@ So when the user stands at a metro station, the screen shows its metro direction
 
 ### StopsViewModel data flow
 
-`UpdateFlow` provides two infinite tickers: `update` every **1 s** and `reFetch` every **10 s**. The ViewModel runs five coroutines:
+`UpdateFlow` provides two infinite tickers built from `RefreshConfig`: `update` every `tickMillis` (phone: **1 s**) and `reFetch` every `reFetchMillis` (phone: **10 s**). Both emit immediately when collected.
+
+All work hangs off one upstream `channelFlow` that is turned into `screenStateStream` with `stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ...)`. Location updates, refetching and ticking therefore run only while the screen collects the state (`collectAsStateWithLifecycle()`), plus a 5 s grace period for configuration changes. The ViewModel keeps the last closest stops, departures and screen state between subscriptions, so returning to the screen shows the previous data and refetches immediately.
 
 ```
-locationFlow ──► _currentLocation
-                     │ filterNotNull + flatMapLatest
-                     ▼
-         stopRepository.getClosestStops ──► _closestStops ──► screenState.closestStops
-                                                │            (loadingMetro/loadingOther = true
-                                                │             when the stop ID changed)
-                     combine(reFetch, 10 s)     ▼
-         departureRepository.getDepartures(platformIds) ──► _departures (+ updatedAt)
-                                                │            loading flags = false
-                     combine(update, 1 s)       ▼
-         departures.addCountDown(now) ──► screenState.departures
-
-update (1 s) ──► screenState.secondsFromLastFetch  ("Updated 5s ago" in the top bar)
+locationFlow
+     │ mapLatest
+     ▼
+stopRepository.getClosestStops ──► closestStops ──► screenState.closestStops
+                                        │            (loadingMetro/loadingOther = true
+                                        │             when the stop ID changed)
+             combine(reFetch)           ▼
+departureRepository.getDepartures(platformIds) ──► departures (+ updatedAt)
+                                        │            loading flags = false
+             combine(update)            ▼
+departures.addCountDown(now) ──► screenState.departures
+now - updatedAt              ──► screenState.secondsFromLastFetch ("Updated 5s ago")
 ```
 
 `StopsScreenState` holds `closestStops`, `loadingMetro`, `loadingOther`, `departures` (with countdowns) and `secondsFromLastFetch`.
@@ -70,7 +73,7 @@ update (1 s) ──► screenState.secondsFromLastFetch  ("Updated 5s ago" in th
 
 ### Fetching and grouping
 
-`DepartureRepository.getDepartures(platformIds)` calls the `Departures` query, sorts the result by `routeDetail.name.toIntOrNull()`, and groups it into:
+`DepartureRepository.getDepartures(platformIds)` (implemented by `DepartureRepositoryImpl`) calls the `Departures` query, sorts the result by `routeDetail.name.toIntOrNull()`, and groups it into:
 
 ```kotlin
 typealias DeparturesGrouped = Map<String /* platformId */, Map<RouteDetail?, List<Departure>>>
@@ -88,7 +91,7 @@ typealias DeparturesGrouped = Map<String /* platformId */, Map<RouteDetail?, Lis
 
 ### `DepartureItem`
 
-A row with a colored route badge (`RouteDetail.getColor()`), the headsign, and the countdown (`secondsToString()`). When there is a second departure, it shows "Also in X", and the second headsign appears in smaller text if it differs from the first.
+A row with a colored route badge (`RouteDetail.toColor()` in `presentation/RouteDetailColor.kt`), the headsign, and the countdown (`secondsToString()`). When there is a second departure, it shows "Also in X", and the second headsign appears in smaller text if it differs from the first.
 
 ## Info texts (`features/infotext`)
 

@@ -19,6 +19,7 @@ android-room = "2.7.2"
 ksp = "2.1.20-2.0.0"
 gms-play-services-location = "21.3.0"
 accompanistPermissions = "0.37.3"
+kotlinxCoroutines = "1.9.0"
 
 
 [libraries]
@@ -49,6 +50,7 @@ android-room = { module = "androidx.room:room-ktx", version.ref = "android-room"
 android-room-compiler = { module = "androidx.room:room-compiler", version.ref = "android-room" }
 gms-play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "gms-play-services-location" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

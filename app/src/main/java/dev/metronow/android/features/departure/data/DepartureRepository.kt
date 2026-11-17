@@ -3,11 +3,14 @@ package dev.metronow.android.features.departure.data
 import dev.metronow.android.features.departure.data.api.DepartureRemoteDataSource
 import dev.metronow.android.features.departure.domain.DeparturesGrouped
 
+interface DepartureRepository {
+    suspend fun getDepartures(platformIds: List<String>): DeparturesGrouped
+}
 
-class DepartureRepository(
+class DepartureRepositoryImpl(
     private val departureRemoteDataSource: DepartureRemoteDataSource
-) {
-    suspend fun getDepartures(platformIds: List<String>): DeparturesGrouped {
+) : DepartureRepository {
+    override suspend fun getDepartures(platformIds: List<String>): DeparturesGrouped {
         val result = departureRemoteDataSource.getDepartures(platformIds)
         val grouped = result
             .sortedBy{ it.routeDetail?.name?.toIntOrNull() }

@@ -43,7 +43,7 @@ fun DepartureItem(
                 text = routeDetail?.name ?: "?",
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(color = routeDetail?.getColor() ?: Color.Black)
+                    .background(color = routeDetail?.toColor() ?: Color.Black)
                     .padding(horizontal = 8.dp, vertical = 4.dp),
                 color = Color.White,
             )

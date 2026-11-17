@@ -1,6 +1,7 @@
 package dev.metronow.android.features.location.data
 
 import dev.metronow.android.features.location.domain.Coordinates
+import dev.metronow.android.features.location.domain.LocationConfig
 import dev.metronow.android.features.location.domain.toDomain
 import android.annotation.SuppressLint
 import android.content.Context
@@ -16,7 +17,8 @@ import android.os.Bundle
 import androidx.core.content.ContextCompat
 
 class LocationDataSource(
-    private val context: Context
+    private val context: Context,
+    private val config: LocationConfig,
 ) {
     @SuppressLint("MissingPermission")
     fun locationFlow(): Flow<Coordinates> = callbackFlow {
@@ -53,8 +55,8 @@ class LocationDataSource(
 
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
-            2000L,
-            30f,
+            config.intervalMillis,
+            config.minDistanceMeters,
             locationListener
         )
 
@@ -62,8 +64,8 @@ class LocationDataSource(
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             locationManager.requestLocationUpdates(
                 LocationManager.NETWORK_PROVIDER,
-                2000L,
-                30f,
+                config.intervalMillis,
+                config.minDistanceMeters,
                 locationListener
             )
         }

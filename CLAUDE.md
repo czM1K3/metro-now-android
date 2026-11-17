@@ -7,7 +7,7 @@ metro now is an Android app (Kotlin, Jetpack Compose, Material 3) that shows liv
 ```bash
 ./gradlew :app:assembleGmsDebug        # main dev build
 ./gradlew :app:assembleVanillaDebug    # build without Google Play Services
-./gradlew :app:testGmsDebugUnitTest    # unit tests (only template tests exist)
+./gradlew :app:testGmsDebugUnitTest    # unit tests (StopsViewModelTest + templates)
 ./gradlew build                        # what CI runs: all variants + lint + unit tests
 ./gradlew :app:downloadApolloSchema --endpoint='https://api.metro.madsoft.cz/graphql' --schema=app/src/main/graphql/dev/metronow/android/schema.graphqls
 ```
@@ -21,7 +21,7 @@ Verify changes with at least `./gradlew :app:assembleGmsDebug :app:assembleVanil
 - **Apollo Kotlin 4** GraphQL: operations are in `app/src/main/graphql/dev/metronow/android/*.graphql` and generate `dev.metronow.android.<Name>Query`. The endpoint is hardcoded in `core/di/CoreModule.kt`.
 - **Room** `MetroDatabase` (`metro.db`, version 1, destructive migration) caches stops, platforms and info texts. **DataStore** (`fit_datastore`) stores the last stop-fetch date. The stop list is refreshed when it is more than 30 days old or empty.
 - **Navigation Compose** with type-safe `@Serializable` routes in the `Screens` sealed interface (`core/presentation/ui/Navigation.kt`).
-- `StopsViewModel` is the core: location → closest stops (Room, Manhattan distance) → departures refetched every 10 s (`UpdateFlow.reFetch`) → countdowns recalculated every 1 s (`UpdateFlow.update`).
+- `StopsViewModel` is the core: location → closest stops (Room, Manhattan distance) → departures refetched every 10 s (`UpdateFlow.reFetch`) → countdowns recalculated every 1 s (`UpdateFlow.update`). Intervals come from `RefreshConfig`, location settings from `LocationConfig`. All work runs in one upstream shared with `stateIn(WhileSubscribed(5_000))`, so it stops when the UI stops.
 
 ## Rules and gotchas
 

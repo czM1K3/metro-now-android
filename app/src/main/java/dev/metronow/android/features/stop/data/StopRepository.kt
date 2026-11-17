@@ -9,13 +9,17 @@ import dev.metronow.android.features.stop.domain.ClosestStops
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class StopRepository(
+interface StopRepository {
+    suspend fun getClosestStops(coordinates: Coordinates): ClosestStops?
+}
+
+class StopRepositoryImpl(
     private val remoteDataSource: StopRemoteDataSource,
     private val localStopDataSource: StopLocalDataSource,
     private val localPlatformDataSource: PlatformLocalDataSource,
     private val stopDataSource: StopDataSource
-) {
-    suspend fun getClosestStops(coordinates: Coordinates): ClosestStops? {
+) : StopRepository {
+    override suspend fun getClosestStops(coordinates: Coordinates): ClosestStops? {
         stopsLocalCacheUpdate()
         val closestMetroStop = localStopDataSource.getClosestMetroStop(coordinates)
         val closestStop = localStopDataSource.getClosestStop(coordinates)

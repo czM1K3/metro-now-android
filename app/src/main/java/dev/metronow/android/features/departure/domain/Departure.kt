@@ -1,7 +1,5 @@
 package dev.metronow.android.features.departure.domain
 
-
-import androidx.compose.ui.graphics.Color
 import java.time.LocalDateTime
 
 enum class VehicleType {
@@ -19,25 +17,7 @@ data class RouteDetail(
     val isSubstitute: Boolean,
     val vehicleType: VehicleType,
     val isNight: Boolean,
-) {
-    fun getColor(): Color {
-        if (isNight) return Color.Black
-        if (isSubstitute) return Color.Red
-        return when (vehicleType) {
-            VehicleType.BUS -> Color.Blue
-            VehicleType.TRAM -> Color(0xFF0985FC)
-            VehicleType.FERRY -> Color.Cyan
-            VehicleType.TRAIN -> Color.Gray
-            VehicleType.FUNICULAR -> Color(0xFF924900)
-            VehicleType.SUBWAY -> when (name) {
-                "A" -> Color(0xFF00A551)
-                "B" -> Color(0xFFFECB09)
-                else -> Color(0xFFEC1F25)
-            }
-            VehicleType.TROLLEYBUS -> Color(0xFFFE6520)
-        }
-    }
-}
+)
 
 interface IDeparture {
     val platformId: String
