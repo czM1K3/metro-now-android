@@ -22,8 +22,8 @@ There is one flavor dimension, `locationBackend`:
 
 | Flavor | Location provider | Extra dependency | Version name |
 | --- | --- | --- | --- |
-| `gms` | Google Play Services fused location | `gmsImplementation(play-services-location)` | `1.0` |
-| `vanilla` | Android `LocationManager` (no Google services) | none | `1.0-nogms` |
+| `gms` | Google Play Services fused location | `gmsImplementation(play-services-location)` | `<versionName>` (e.g. `1.1`) |
+| `vanilla` | Android `LocationManager` (no Google services) | none | `<versionName>-nogms` (e.g. `1.1-nogms`) |
 
 | Build type | Notes |
 | --- | --- |
@@ -53,7 +53,7 @@ Flavor-specific code goes in `app/src/<flavor>/java/...`. Today the only such fi
 
 ## Releasing
 
-There is no signing config in the repository. Release builds are signed locally through Android Studio, and the output folder `app/release/` is git-ignored. Before cutting a release, bump `versionCode` and `versionName` in `app/build.gradle.kts`. Both are still at their initial values (`1` / `"1.0"`).
+There is no signing config in the repository. Release builds are signed locally through Android Studio, and the output folder `app/release/` is git-ignored. Before cutting a release, bump `versionCode` (must increase for Google Play) and `versionName` in `app/build.gradle.kts`.
 
 ## Updating the GraphQL schema
 
